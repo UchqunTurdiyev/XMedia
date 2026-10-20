@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import { AnimatePresence, MotionConfig, motion } from "framer-motion";
+import { usePathname } from "next/navigation";
 import LeadForm from "./LeadForm";
 
 const Ctx = createContext({ open: () => {} });
@@ -9,6 +10,12 @@ export const useLeadModal = () => useContext(Ctx);
 
 export default function LeadModalProvider({ children }) {
   const [state, setState] = useState(null); // null | { source }
+  const pathname = usePathname();
+
+  // Forma yuborilib /rahmat ga o'tilganda modal ochiq (loading) qolib ketmasin
+  useEffect(() => {
+    setState(null);
+  }, [pathname]);
 
   useEffect(() => {
     document.documentElement.style.overflow = state ? "hidden" : "";

@@ -1,40 +1,15 @@
 import { NextResponse } from "next/server";
-import { getLead, updateLead, setPending, getPending, clearPending, bumpStat, getStats, once } from "@/lib/store";
-import { sendCapiEvent, parseAmount, capiValue, QUALIFIED_EVENT, CAPI_CURRENCY, fmtUzs } from "@/lib/meta";
-import { tg, CHAT_ID, isAllowed, leadKeyboard } from "@/lib/telegram";
-import { leadText } from "@/lib/leadMessage";
+import { getLead, updateLead, getPending, clearPending, bumpStat, getStats, once } from "@/lib/store";
+import { parseAmount, CAPI_CURRENCY, fmtUzs } from "@/lib/meta";
+import { tg, isAllowed } from "@/lib/telegram";
 import { escapeHtml } from "@/lib/hash";
+import { refreshLeadMessage, markQualified, recordSale } from "@/lib/sale";
+import { saleUrl } from "@/lib/saleLink";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const who = (u) => [u?.first_name, u?.last_name].filter(Boolean).join(" ") + (u?.username ? ` (@${u.username})` : "");
-
-async function refreshLeadMessage(lead) {
-  if (!lead.tgMessageId || !CHAT_ID) return;
-  await tg("editMessageText", {
-    chat_id: CHAT_ID,
-    message_id: lead.tgMessageId,
-    text: leadText(lead),
-    parse_mode: "HTML",
-    disable_web_page_preview: true,
-    reply_markup: leadKeyboard(lead),
-  });
-}
-
-/** Sifatli lid → Meta (bir marta) */
-async function markQualified(lead, user) {
-  if (lead.capi?.qualified) return lead;
-  // event_id bir xil — qayta urinishda ham Meta dublikat qilmaydi
-  const res = await sendCapiEvent({ eventName: QUALIFIED_EVENT, eventId: `ql-${lead.id}`, lead });
-  if (!lead.qualifiedAt) await bumpStat("qualified");
-  return await updateLead(lead.id, {
-    status: lead.status === "new" ? "qualified" : lead.status,
-    qualifiedBy: lead.qualifiedBy || who(user),
-    qualifiedAt: lead.qualifiedAt || Date.now(),
-    capi: { ...lead.capi, qualified: res.ok },
-  });
-}
 
 export async function POST(req) {
   const secret = process.env.TELEGRAM_WEBHOOK_SECRET;
@@ -68,7 +43,7 @@ async function onCallback(cq) {
 
   if (action === "q") {
     if (lead.status !== "new") return answer("Bu lid allaqachon belgilangan");
-    lead = await markQualified(lead, cq.from);
+    lead = await markQualified(lead, who(cq.from));
     await refreshLeadMessage(lead);
     return answer(lead.capi.qualified ? "✅ Sifatli lid Meta'ga yuborildi" : "✅ Belgilandi (CAPI xato — logni tekshiring)");
   }
@@ -89,22 +64,18 @@ async function onCallback(cq) {
     return answer("↩️ Qaytarildi");
   }
 
+  // Eski xabarlardagi tugma — endi sahifa havolasini beradi va tugmani yangilaydi
   if (action === "p") {
     if (lead.status === "bad") return answer("Avval lidni qaytaring", true);
-    await setPending(cq.from.id, id);
+    await refreshLeadMessage(lead);
     await tg("sendMessage", {
       chat_id: cq.message.chat.id,
       reply_to_message_id: cq.message.message_id,
       parse_mode: "HTML",
-      text:
-        `💰 <code>#L-${id}</code> — <b>${escapeHtml(lead.name)}</b>\n\n` +
-        `To'lov summasini <b>shu xabarga javob (reply)</b> qilib yozing:\n` +
-        `• <code>2500000</code>  yoki  <code>2.5 mln</code>  (so'm)\n` +
-        `• <code>$200</code>  (dollar)\n\n` +
-        `Bekor qilish: /bekor`,
-      reply_markup: { force_reply: true, selective: true, input_field_placeholder: "Masalan: 2500000" },
+      text: `💰 <code>#L-${id}</code> — <b>${escapeHtml(lead.name)}</b>\nSummani sahifada kiriting 👇`,
+      reply_markup: { inline_keyboard: [[{ text: "💰 Summa kiritish", url: saleUrl(id) }]] },
     });
-    return answer("Summani yozing 👇");
+    return answer("Sahifa havolasi yuborildi 👇");
   }
 
   return answer("Noma'lum amal");
@@ -158,29 +129,9 @@ async function onMessage(m) {
     });
   }
 
-  // Sotib olgan = sifatli. Agar oldin belgilanmagan bo'lsa — QualifiedLead ham ketadi
-  if (!lead.capi?.qualified) lead = await markQualified(lead, m.from);
-
-  const n = (lead.sales?.length || 0) + 1;
-  const value = capiValue(amount);
-  const res = await sendCapiEvent({
-    eventName: "Purchase",
-    eventId: `pur-${lead.id}-${n}`,
-    lead,
-    customData: { value, currency: CAPI_CURRENCY, order_id: `${lead.id}-${n}`, num_items: 1 },
-  });
-
-  const sale = { uzs: amount.uzs, usd: amount.usd, by: who(m.from), at: Date.now(), capi: res.ok };
-  lead = await updateLead(lead.id, {
-    status: "sold",
-    sales: [...(lead.sales || []), sale],
-    capi: { ...lead.capi, purchase: (lead.capi?.purchase || 0) + (res.ok ? 1 : 0) },
-  });
-
+  const { lead: saved, res, value } = await recordSale(lead, amount, who(m.from));
+  lead = saved;
   await clearPending(m.from.id);
-  await bumpStat("sales");
-  await bumpStat("revenue", amount.uzs);
-  await refreshLeadMessage(lead);
 
   const shown = CAPI_CURRENCY === "UZS" ? fmtUzs(value) : `$${value}`;
   return reply(
