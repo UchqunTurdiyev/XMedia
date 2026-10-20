@@ -2,59 +2,52 @@
 
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Logo, CTAButton } from "./ui";
+import { Logo, CTAButton, H2, TelegramIcon, PhoneIcon } from "./ui";
 import { site } from "@/lib/content";
 import { useLeadModal } from "./LeadModal";
 
 export function Footer() {
   return (
-    <footer className="relative overflow-hidden border-t border-line pt-20">
+    <footer className="border-t border-line pb-28 pt-24 md:pb-0">
       <div className="mx-auto max-w-7xl px-5">
         <div className="flex flex-col items-start justify-between gap-10 md:flex-row md:items-end">
           <div>
-            <p className="font-mono text-xs uppercase tracking-[0.25em] text-neon">Keyingi qadam</p>
-            <h2 className="mt-4 max-w-2xl font-display text-[clamp(2rem,5vw,4rem)] font-black leading-[1]">
-              Brendingizni <span className="neon-text">kadrga</span> olib chiqamiz
-            </h2>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-mute">Keyingi qadam</p>
+            <H2 className="mt-5 max-w-2xl">
+              Brendingizni <span className="text-neon">kadrga</span> olib chiqamiz
+            </H2>
           </div>
-          <CTAButton source="footer">Ariza qoldirish</CTAButton>
+          <CTAButton source="footer">Bepul audit olish</CTAButton>
         </div>
 
-        <div className="mt-16 grid gap-10 border-t border-line py-12 sm:grid-cols-3">
+        <div className="mt-20 grid gap-10 border-t border-line py-12 sm:grid-cols-3">
           <div>
             <Logo />
-            <p className="mt-4 max-w-xs text-sm text-mute">{site.tagline}. Infoprodyuserlik, SMM, shaxsiy brend va video prodakshn.</p>
+            <p className="mt-4 max-w-xs text-sm text-mute">{site.tagline}. Shaxsiy brend, SMM, video prodakshn va target reklama.</p>
           </div>
           <div className="space-y-2 text-sm">
-            <p className="font-mono text-xs uppercase tracking-widest text-mute">Aloqa</p>
-            <a href={`tel:${site.phoneRaw}`} className="block font-mono text-lg hover:text-neon">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-mute">Aloqa</p>
+            <a href={`tel:${site.phoneRaw}`} className="tnum block text-lg font-semibold transition duration-300 hover:text-neon">
               {site.phone}
             </a>
           </div>
           <div className="space-y-2 text-sm">
-            <p className="font-mono text-xs uppercase tracking-widest text-mute">Ijtimoiy tarmoqlar</p>
-            <a href={site.instagram} target="_blank" rel="noopener" className="block hover:text-neon">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-mute">Ijtimoiy tarmoqlar</p>
+            <a href={site.instagram} target="_blank" rel="noopener" className="block transition duration-300 hover:text-neon">
               Instagram — {site.instagramHandle}
             </a>
-            <a href={site.telegram} target="_blank" rel="noopener" className="block hover:text-neon">
-              Telegram kanal
+            <a href={site.telegram} target="_blank" rel="noopener" className="block transition duration-300 hover:text-neon">
+              Telegram
             </a>
           </div>
         </div>
       </div>
-
-      <p
-        aria-hidden="true"
-        className="pointer-events-none select-none text-center font-display text-[22vw] font-black leading-[0.8] tracking-tighter text-transparent [-webkit-text-stroke:1px_rgba(57,255,106,0.25)]"
-      >
-        XMEDIA
-      </p>
       <p className="border-t border-line py-5 text-center text-xs text-mute">© {new Date().getFullYear()} XMEDIA. Barcha huquqlar himoyalangan.</p>
     </footer>
   );
 }
 
-/** Mobil: pastda doimiy CTA panel */
+/** Mobil: pastda doimiy panel — Telegram, qo'ng'iroq, audit */
 export function FloatingCTA() {
   const [show, setShow] = useState(false);
   const { open } = useLeadModal();
@@ -63,13 +56,14 @@ export function FloatingCTA() {
       const form = document.getElementById("ariza");
       const r = form?.getBoundingClientRect();
       const formVisible = r && r.top < window.innerHeight && r.bottom > 0;
-      setShow(window.scrollY > 600 && !formVisible);
+      setShow(window.scrollY > 400 && !formVisible);
     };
     on();
     window.addEventListener("scroll", on, { passive: true });
     return () => window.removeEventListener("scroll", on);
   }, []);
 
+  const icon = "grid w-12 place-items-center rounded-xl border border-line text-paper";
   return (
     <AnimatePresence>
       {show && (
@@ -77,15 +71,16 @@ export function FloatingCTA() {
           initial={{ y: 100 }}
           animate={{ y: 0 }}
           exit={{ y: 100 }}
-          transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className="fixed inset-x-3 bottom-3 z-40 flex gap-2 rounded-2xl border border-line bg-ink/85 p-2 backdrop-blur-xl md:hidden"
+          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          className="fixed inset-x-3 bottom-3 z-40 flex gap-2 rounded-2xl border border-line bg-ink/90 p-2 backdrop-blur-xl md:hidden"
         >
-          <a href={`tel:${site.phoneRaw}`} className="grid w-14 place-items-center rounded-xl border border-line text-neon" aria-label="Qo'ng'iroq">
-            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1.9.4 1.8.7 2.7a2 2 0 01-.5 2.1L8 9.8a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.8.6 2.7.7a2 2 0 011.7 2z" />
-            </svg>
+          <a href={site.telegram} target="_blank" rel="noopener" className={icon} aria-label="Telegram">
+            <TelegramIcon className="h-5 w-5" />
           </a>
-          <button onClick={() => open("sticky-mobile")} className="shine flex-1 rounded-xl bg-neon py-3.5 font-display text-sm font-extrabold uppercase text-ink">
+          <a href={`tel:${site.phoneRaw}`} className={icon} aria-label="Qo'ng'iroq">
+            <PhoneIcon />
+          </a>
+          <button onClick={() => open("sticky-mobile")} className="flex-1 rounded-xl bg-neon py-3.5 text-sm font-bold text-ink">
             Bepul audit olish →
           </button>
         </motion.div>

@@ -15,7 +15,7 @@ function formatLocal(digits) {
 function Chips({ label, options, value, onChange }) {
   return (
     <div>
-      <p className="mb-2 font-mono text-[11px] uppercase tracking-[0.18em] text-mute">{label}</p>
+      <p className="mb-2.5 text-xs font-semibold uppercase tracking-[0.16em] text-mute">{label}</p>
       <div className="flex flex-wrap gap-2">
         {options.map((o) => (
           <button
@@ -23,7 +23,7 @@ function Chips({ label, options, value, onChange }) {
             key={o}
             data-on={value === o}
             onClick={() => onChange(value === o ? "" : o)}
-            className="chip rounded-full border border-line bg-ink-3 px-3.5 py-2 text-sm text-paper/90 transition hover:border-neon/60"
+            className="chip rounded-full border border-line bg-ink-3 px-3.5 py-2 text-sm text-paper/90 transition duration-300 hover:border-paper/50"
           >
             {o}
           </button>
@@ -89,7 +89,7 @@ export default function LeadForm({ compact = false, source = "form" }) {
   }
 
   const inputCls =
-    "w-full rounded-2xl border border-line bg-ink-3 px-4 py-4 text-base text-paper outline-none transition placeholder:text-mute/60 focus:border-neon focus:shadow-[0_0_0_4px_rgba(57,255,106,0.12)]";
+    "w-full rounded-2xl border border-line bg-ink-3 px-4 py-4 text-base text-paper outline-none transition placeholder:text-mute/60 focus:border-paper/50";
 
   return (
     <form onSubmit={submit} className="space-y-5" noValidate>
@@ -101,10 +101,10 @@ export default function LeadForm({ compact = false, source = "form" }) {
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
-        <label className={`${inputCls} flex items-center gap-2 focus-within:border-neon`}>
-          <span className="font-mono text-neon">+998</span>
+        <label className={`${inputCls} flex items-center gap-2 focus-within:border-paper/50`}>
+          <span className="tnum text-mute">+998</span>
           <input
-            className="w-full bg-transparent outline-none placeholder:text-mute/60"
+            className="tnum w-full bg-transparent outline-none placeholder:text-mute/60"
             inputMode="tel"
             autoComplete="tel-national"
             placeholder="90 123 45 67"
@@ -147,10 +147,9 @@ export default function LeadForm({ compact = false, source = "form" }) {
       </AnimatePresence>
 
       <motion.button
-        whileHover={{ scale: 1.015 }}
         whileTap={{ scale: 0.98 }}
         disabled={loading}
-        className="shine group flex w-full items-center justify-center gap-3 rounded-2xl bg-neon px-6 py-4 font-display text-base font-extrabold uppercase tracking-wide text-ink shadow-[0_10px_50px_-10px_rgba(57,255,106,0.8)] disabled:opacity-70"
+        className="group flex w-full items-center justify-center gap-3 rounded-2xl bg-neon px-6 py-4 text-base font-bold text-ink transition duration-300 hover:bg-paper disabled:opacity-70"
       >
         {loading ? (
           <span className="h-5 w-5 animate-spin rounded-full border-2 border-ink border-t-transparent" />
