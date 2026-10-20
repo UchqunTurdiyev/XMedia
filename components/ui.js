@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { motion, useInView, animate } from "framer-motion";
 import { useLeadModal } from "./LeadModal";
 
@@ -89,18 +90,7 @@ export function SectionLabel({ n, children }) {
 export function Logo({ className = "" }) {
   return (
     <span className={`inline-flex items-center gap-2.5 ${className}`}>
-      <svg viewBox="0 0 40 40" className="h-9 w-9" aria-hidden="true">
-        <rect x="2" y="9" width="36" height="27" rx="7" fill="none" stroke="currentColor" strokeWidth="2.2" />
-        <path d="M13 9l3-5h8l3 5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round" />
-        <circle cx="20" cy="22.5" r="9" fill="#39ff6a" />
-        <path
-          d="M14.5 19c2 .5 3 2 2.5 3.5s1.5 2 2.5 1.5M22 15.5c-.5 1.5.5 2.5 2 2.5s2 1.5 1.5 3M17 28c.5-1.5 2-2 3-1.5s2.5 0 3-1"
-          fill="none"
-          stroke="#050705"
-          strokeWidth="1.6"
-          strokeLinecap="round"
-        />
-      </svg>
+      <Image src="/logo.jpg" alt="" width={44} height={44} priority className="h-11 w-11 rounded-lg" />
       <span className="font-display text-lg font-black tracking-tight">
         X<span className="text-neon">MEDIA</span>
       </span>
