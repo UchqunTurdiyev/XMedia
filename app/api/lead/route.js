@@ -87,6 +87,10 @@ export async function POST(req) {
     });
     if (msg?.ok) lead.tgMessageId = msg.result.message_id;
   }
+  // Telegram'ga yetib bormasa ham lid yo'qolmasin — Vercel loglarida qoladi
+  if (!lead.tgMessageId) {
+    console.error("[LEAD] Telegram'ga yuborilmadi:", JSON.stringify({ id, name, phone, business: lead.business, service: lead.service, budget: lead.budget, utm }));
+  }
 
   await updateLead(id, { capi: lead.capi, tgMessageId: lead.tgMessageId });
 
